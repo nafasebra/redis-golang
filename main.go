@@ -22,16 +22,10 @@ func NewStore() *Store {
 }
 
 func main() {	
-	data := make(map[string]string)
+	data := NewStore()
 
-	data["a"] = "nafas"
-	data["b"] = "1234"
+	data.Set("a", "nafas")
+	data.Set("b", "blah blah blah")
 
-	value, exists := data["b"];
-
-	fmt.Println(data["a"])
-	fmt.Println(value, exists)
-
-
-    fmt.Println("Hello, World!")
+	fmt.Println(data.Get("a"))
 }
