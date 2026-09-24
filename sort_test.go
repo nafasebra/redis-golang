@@ -115,3 +115,81 @@ func TestKeysEmptyStore(t *testing.T) {
 		t.Fatalf("expected 0 keys, got %d", len(keys))
 	}
 }
+
+func TestRename(t *testing.T) {
+	store := NewStore()
+
+	store.Set("old", "nafas")
+
+	store.Rename("old", "new")
+
+	value, exists := store.Get("new")
+
+	if !exists {
+		t.Fatal("expected new key to exist")
+	}
+
+	if value != "nafas" {
+		t.Fatalf("expected nafas, got %s", value)
+	}
+
+	_, exists = store.Get("old")
+
+	if exists {
+		t.Fatal("expected old key to be deleted")
+	}
+}
+
+func TestRenameNonExistingKey(t *testing.T) {
+	store := NewStore()
+
+	store.Rename("old", "new")
+
+	value, exists := store.Get("new")
+
+	if !exists {
+		t.Fatal("expected new key to exist")
+	}
+
+	if value != "" {
+		t.Fatalf("expected empty value, got %s", value)
+	}
+}
+
+func TestPop(t *testing.T) {
+	store := NewStore()
+
+	store.Set("a", "nafas")
+
+	value, exists := store.Pop("a")
+
+	if !exists {
+		t.Fatal("expected key to exist")
+	}
+
+	if value != "nafas" {
+		t.Fatalf("expected nafas, got %s", value)
+	}
+
+	_, exists = store.Get("a")
+
+	if exists {
+		t.Fatal("expected key to be deleted")
+	}
+}
+
+func TestPopNonExistingKey(t *testing.T) {
+	store := NewStore()
+
+	value, exists := store.Pop("a")
+
+	if exists {
+		t.Fatal("expected key to not exist")
+	}
+
+	if value != "" {
+		t.Fatalf("expected empty value, got %s", value)
+	}
+}
+
+

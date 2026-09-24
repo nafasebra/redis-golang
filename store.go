@@ -31,6 +31,22 @@ func (s *Store) Keys() ([]string) {
 	return keys
 }
 
+func (s *Store) Rename(oldkey, newkey string) {
+	value := s.data[oldkey]
+	s.data[newkey] = value
+	delete(s.data, oldkey)
+}
+
+func (s *Store) Pop(key string) (string, bool) {
+	value, exist := s.data[key]
+	delete(s.data, key)
+	return value, exist
+}
+
+func (s *Store) Len() int {
+	return len(s.data)
+}
+
 func NewStore() *Store {
 	return &Store{
 		data: make(map[string]string),
