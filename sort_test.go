@@ -81,7 +81,6 @@ func TestDeleteExistingKey(t *testing.T) {
 func TestDeleteNonExistingKey(t *testing.T) {
 	store := NewStore()
 
-	// نباید panic کند
 	store.Delete("a")
 }
 
