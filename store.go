@@ -6,9 +6,10 @@ import (
 )
 
 var (
+	ErrEmptyKey         = errors.New("key is empty")
 	ErrKeyNotFound      = errors.New("key not found")
 	ErrKeyAlreadyExists = errors.New("key already exists")
-	ErrInvalidKey        = errors.New("key cannot be empty")
+	ErrInvalidKey       = errors.New("key cannot be empty")
 )
 
 type Store struct {
