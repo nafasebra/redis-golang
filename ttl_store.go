@@ -1,9 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
-	"errors"
+)
+
+var (
+	ErrInvalidExpiration = errors.New("The time is expired")
 )
 
 type TTLStore struct {
@@ -21,9 +25,18 @@ func NewTTLStore() *TTLStore {
 	}
 }
 
-func (t *TTLStore) Set(key string, value string, ttl time.Time) error {
+func (t *TTLStore) Set(key string, value string, expireAt time.Time) error {
 	if key == "" {
 		return ErrEmptyKey
+	}
+
+	if !expireAt.After(time.Now()) {
+		return ErrInvalidExpiration
+	}
+
+	t.data[key] = ttlEntry{
+		value:     value,
+		expire_at: expireAt,
 	}
 
 	return nil
@@ -41,5 +54,18 @@ func (t *TTLStore) GetWithTTL(key string) (string, error) {
 		return "", ErrKeyNotFound
 	}
 
-	return entry.value, nil 
+	return entry.value, nil
+}
+
+func (t *TTLStore) Delete(key string) error {
+	if _, exists := t.data[key]; !exists {
+		return ErrKeyNotFound
+	}
+
+	delete(t.data, key)
+	return nil
+}
+
+func (t *TTLStore) Len() int {
+	return len(t.data)
 }
