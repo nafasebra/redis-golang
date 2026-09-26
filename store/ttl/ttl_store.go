@@ -1,4 +1,4 @@
-package store
+package ttl
 
 import (
 	"time"
