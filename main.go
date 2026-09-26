@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"encoding/base64"
+)
 
 func main() {	
 	data := NewStore()
@@ -13,4 +16,13 @@ func main() {
 	fmt.Println(data.Get("a"))
 
 	fmt.Println(data.Get("b"))
+}
+
+func SetKeyWithEncryption(store Storer, key, value string) (string, error) {
+	encoded := base64.StdEncoding.EncodeToString([]byte(value))
+	if err := store.Set(key, encoded); err != nil {
+		return "", err
+	}
+
+	return store.Get(key)
 }
