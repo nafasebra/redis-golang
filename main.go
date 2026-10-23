@@ -1,28 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"encoding/base64"
+	"fmt"
+	"redis-golang/store"
+	"redis-golang/store/kv"
+	"redis-golang/store/ttl"
 )
 
-func main() {	
-	data := NewStore()
-
-	data.Set("a", "nafas")
-	data.Set("b", "blah blah blah")
-
-	data.Delete("b")
-
-	fmt.Println(data.Get("a"))
-
-	fmt.Println(data.Get("b"))
+func main() {
+	stores := []store.Storer{kv.NewStore(), ttl.NewTTLStore()}
+	
+	for _, data := range stores {
+		value, err := SetKeyWithEncryption(data, "a", "nafas")
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Println(value)
+	}
 }
 
-func SetKeyWithEncryption(store Storer, key, value string) (string, error) {
+func SetKeyWithEncryption(data store.Storer, key, value string) (string, error) {
 	encoded := base64.StdEncoding.EncodeToString([]byte(value))
-	if err := store.Set(key, encoded); err != nil {
+	if err := data.Set(key, encoded); err != nil {
 		return "", err
 	}
-
-	return store.Get(key)
+	return data.Get(key)
 }

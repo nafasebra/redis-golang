@@ -1,9 +1,13 @@
 package ttl
 
 import (
-	"time"
 	"redis-golang/errors"
+	"redis-golang/store"
+	"sort"
+	"time"
 )
+
+var _ store.Storer = (*TTLStore)(nil)
 
 type TTLStore struct {
 	data map[string]ttlEntry
@@ -20,7 +24,7 @@ func NewTTLStore() *TTLStore {
 	}
 }
 
-func (t *TTLStore) Set(key string, value string, expireAt time.Time) error {
+func (t *TTLStore) SetWithTTL(key string, value string, expireAt time.Time) error {
 	if key == "" {
 		return errors.ErrEmptyKey
 	}
@@ -37,14 +41,16 @@ func (t *TTLStore) Set(key string, value string, expireAt time.Time) error {
 	return nil
 }
 
-func (t *TTLStore) GetWithTTL(key string) (string, error) {
+func (t *TTLStore) GetWithTTL(key string) (string, error) { return t.Get(key) }
+
+func (t *TTLStore) Get(key string) (string, error) {
 	if key == "" {
 		return "", errors.ErrEmptyKey
 	}
 
 	entry, ok := t.data[key]
 
-	if !ok || time.Now().After(entry.expire_at) {
+	if !ok || entry.expired() {
 		delete(t.data, key)
 		return "", errors.ErrKeyNotFound
 	}
@@ -62,29 +68,29 @@ func (t *TTLStore) Delete(key string) error {
 }
 
 func (t *TTLStore) Rename(oldKey, newKey string) error {
-    if oldKey == "" || newKey == "" {
-        return errors.ErrInvalidKey
-    }
+	if oldKey == "" || newKey == "" {
+		return errors.ErrInvalidKey
+	}
 
-    entry, exists := t.data[oldKey]
+	entry, exists := t.data[oldKey]
 
-    if !exists || !entry.expire_at.After(time.Now()) {
-        delete(t.data, oldKey)
-        return errors.ErrKeyNotFound
-    }
+	if !exists || entry.expired() {
+		delete(t.data, oldKey)
+		return errors.ErrKeyNotFound
+	}
 
-    if existingEntry, exists := t.data[newKey]; exists {
-        if existingEntry.expire_at.After(time.Now()) {
-            return errors.ErrKeyAlreadyExists
-        }
+	if existingEntry, exists := t.data[newKey]; exists {
+		if !existingEntry.expired() {
+			return errors.ErrKeyAlreadyExists
+		}
 
-        delete(t.data, newKey)
-    }
+		delete(t.data, newKey)
+	}
 
-    t.data[newKey] = entry
-    delete(t.data, oldKey)
+	t.data[newKey] = entry
+	delete(t.data, oldKey)
 
-    return nil
+	return nil
 }
 
 // func (t *TTLStore) Exist(key string) (bool, error) {
@@ -106,5 +112,31 @@ func (t *TTLStore) Rename(oldKey, newKey string) error {
 // }
 
 func (t *TTLStore) Len() int {
-	return len(t.data)
+	return len(t.Keys())
+}
+
+// Set stores a value without expiration.
+func (t *TTLStore) Set(key, value string) error {
+	if key == "" {
+		return errors.ErrEmptyKey
+	}
+	t.data[key] = ttlEntry{value: value}
+	return nil
+}
+
+func (entry ttlEntry) expired() bool {
+	return !entry.expire_at.IsZero() && !entry.expire_at.After(time.Now())
+}
+
+func (t *TTLStore) Keys() []string {
+	keys := make([]string, 0, len(t.data))
+	for key, entry := range t.data {
+		if entry.expired() {
+			delete(t.data, key)
+			continue
+		}
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }

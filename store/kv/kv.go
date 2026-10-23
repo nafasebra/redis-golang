@@ -1,17 +1,23 @@
 package kv
 
 import (
-	"sort"
 	"redis-golang/errors"
+	"redis-golang/store"
+	"sort"
 )
+
+var _ store.Storer = (*Store)(nil)
 
 type Store struct {
 	data map[string]string
 }
 
-func (s *Store) Get(key string) (string, bool) {
+func (s *Store) Get(key string) (string, error) {
 	value, exist := s.data[key]
-	return value, exist
+	if !exist {
+		return "", errors.ErrKeyNotFound
+	}
+	return value, nil
 }
 
 func (s *Store) Set(key, value string) error {
@@ -20,7 +26,7 @@ func (s *Store) Set(key, value string) error {
 	}
 
 	s.data[key] = value
-	
+
 	return nil
 }
 
@@ -44,8 +50,6 @@ func (s *Store) Delete(key string) error {
 	delete(s.data, key)
 	return nil
 }
-
-
 
 func (s *Store) Len() int {
 	return len(s.data)

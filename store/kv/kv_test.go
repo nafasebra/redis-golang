@@ -15,9 +15,9 @@ func TestSet(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	value, exists := store.Get("name")
+	value, err := store.Get("name")
 
-	if !exists {
+	if err != nil {
 		t.Fatal("expected key to exist")
 	}
 
@@ -42,9 +42,9 @@ func TestSetOverwrite(t *testing.T) {
 	_ = store.Set("name", "Nafas")
 	_ = store.Set("name", "Ali")
 
-	value, exists := store.Get("name")
+	value, err := store.Get("name")
 
-	if !exists {
+	if err != nil {
 		t.Fatal("expected key to exist")
 	}
 
@@ -58,9 +58,9 @@ func TestGetExistingKey(t *testing.T) {
 
 	_ = store.Set("name", "Nafas")
 
-	value, exists := store.Get("name")
+	value, err := store.Get("name")
 
-	if !exists {
+	if err != nil {
 		t.Fatal("expected key to exist")
 	}
 
@@ -72,9 +72,9 @@ func TestGetExistingKey(t *testing.T) {
 func TestGetNonExistingKey(t *testing.T) {
 	store := NewStore()
 
-	value, exists := store.Get("name")
+	value, err := store.Get("name")
 
-	if exists {
+	if err != errors.ErrKeyNotFound {
 		t.Fatal("expected key not to exist")
 	}
 
@@ -94,9 +94,9 @@ func TestDelete(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	_, exists := store.Get("name")
+	_, err = store.Get("name")
 
-	if exists {
+	if err != errors.ErrKeyNotFound {
 		t.Fatal("expected key to be deleted")
 	}
 }

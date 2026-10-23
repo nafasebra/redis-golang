@@ -28,7 +28,7 @@ func TestSet(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("name", "Nafas", expireAt)
+	err := store.SetWithTTL("name", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -54,7 +54,7 @@ func TestSetEmptyKey(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("", "value", expireAt)
+	err := store.SetWithTTL("", "value", expireAt)
 
 	if err != errors.ErrEmptyKey {
 		t.Fatalf("expected ErrEmptyKey, got %v", err)
@@ -66,7 +66,7 @@ func TestSetInvalidExpiration(t *testing.T) {
 
 	expireAt := time.Now().Add(-time.Minute)
 
-	err := store.Set("name", "Nafas", expireAt)
+	err := store.SetWithTTL("name", "Nafas", expireAt)
 
 	if err != errors.ErrInvalidExpiration {
 		t.Fatalf("expected ErrInvalidExpiration, got %v", err)
@@ -79,13 +79,13 @@ func TestSetOverwrite(t *testing.T) {
 	firstExpiration := time.Now().Add(time.Minute)
 	secondExpiration := time.Now().Add(2 * time.Minute)
 
-	err := store.Set("name", "Nafas", firstExpiration)
+	err := store.SetWithTTL("name", "Nafas", firstExpiration)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = store.Set("name", "Ali", secondExpiration)
+	err = store.SetWithTTL("name", "Ali", secondExpiration)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -107,7 +107,7 @@ func TestGetWithTTL(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("name", "Nafas", expireAt)
+	err := store.SetWithTTL("name", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -149,7 +149,7 @@ func TestGetWithTTLExpiredKey(t *testing.T) {
 
 	expireAt := time.Now().Add(50 * time.Millisecond)
 
-	err := store.Set("name", "Nafas", expireAt)
+	err := store.SetWithTTL("name", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -173,7 +173,7 @@ func TestDelete(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("name", "Nafas", expireAt)
+	err := store.SetWithTTL("name", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -205,7 +205,7 @@ func TestRename(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("old", "Nafas", expireAt)
+	err := store.SetWithTTL("old", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -269,7 +269,7 @@ func TestRenameExpiredKey(t *testing.T) {
 
 	expireAt := time.Now().Add(50 * time.Millisecond)
 
-	err := store.Set("old", "Nafas", expireAt)
+	err := store.SetWithTTL("old", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -293,13 +293,13 @@ func TestRenameToExistingKey(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	err := store.Set("old", "Nafas", expireAt)
+	err := store.SetWithTTL("old", "Nafas", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = store.Set("new", "Ali", expireAt)
+	err = store.SetWithTTL("new", "Ali", expireAt)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -317,8 +317,8 @@ func TestLen(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	_ = store.Set("name", "Nafas", expireAt)
-	_ = store.Set("age", "25", expireAt)
+	_ = store.SetWithTTL("name", "Nafas", expireAt)
+	_ = store.SetWithTTL("age", "25", expireAt)
 
 	if store.Len() != 2 {
 		t.Fatalf("expected length 2, got %d", store.Len())
@@ -330,8 +330,8 @@ func TestLenAfterDelete(t *testing.T) {
 
 	expireAt := time.Now().Add(time.Minute)
 
-	_ = store.Set("name", "Nafas", expireAt)
-	_ = store.Set("age", "25", expireAt)
+	_ = store.SetWithTTL("name", "Nafas", expireAt)
+	_ = store.SetWithTTL("age", "25", expireAt)
 
 	_ = store.Delete("name")
 
