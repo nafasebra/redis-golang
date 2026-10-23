@@ -4,21 +4,25 @@ import (
 	"encoding/base64"
 	"fmt"
 	"redis-golang/store"
-	"redis-golang/store/kv"
 	"redis-golang/store/ttl"
+	"time"
 )
 
 func main() {
-	stores := []store.Storer{kv.NewStore(), ttl.NewTTLStore()}
-	
-	for _, data := range stores {
-		value, err := SetKeyWithEncryption(data, "a", "nafas")
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		fmt.Println(value)
+	data := ttl.NewTTLStore()
+
+	if err := data.Set("name", "Nafas"); err != nil {
+		fmt.Println(err)
+		return
 	}
+	if err := data.SetWithTTL("code", "1234", time.Now().Add(time.Minute)); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(data.Get("name"))
+	fmt.Println(data.Get("code"))
+	fmt.Println("keys:", data.Keys())
 }
 
 func SetKeyWithEncryption(data store.Storer, key, value string) (string, error) {

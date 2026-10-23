@@ -7,6 +7,34 @@ import (
 	"redis-golang/errors"
 )
 
+func TestMixedExpiration(t *testing.T) {
+	s := NewTTLStore()
+	if err := s.Set("name", "Nafas"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetWithTTL("code", "1234", time.Now().Add(time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	if s.Len() != 2 {
+		t.Fatal("expected both keys in the same store")
+	}
+	if value, err := s.Get("code"); err != nil || value != "1234" {
+		t.Fatalf("Get(code) = %q, %v", value, err)
+	}
+	entry := s.data["code"]
+	entry.expire_at = time.Now().Add(-time.Second)
+	s.data["code"] = entry
+	if _, err := s.Get("code"); err != errors.ErrKeyNotFound {
+		t.Fatalf("expected expired key error, got %v", err)
+	}
+	if value, err := s.Get("name"); err != nil || value != "Nafas" {
+		t.Fatalf("Get(name) = %q, %v", value, err)
+	}
+	if s.Len() != 1 {
+		t.Fatal("expected only the permanent key to remain")
+	}
+}
+
 func TestNewTTLStore(t *testing.T) {
 	store := NewTTLStore()
 
