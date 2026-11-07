@@ -31,6 +31,10 @@ func main() {
 	}
 
 	fmt.Println("keys after delete:", logger.Keys())
+
+	if _, err := logger.Get("missing"); err != nil {
+		fmt.Println("expected get failure:", err)
+	}
 }
 
 func SetKeyWithEncryption(data store.Storer, key, value string) (string, error) {
