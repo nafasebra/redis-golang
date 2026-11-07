@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"redis-golang/store"
+	"time"
 )
 
 var _ store.Storer = (*MetricsMiddleware)(nil)
@@ -18,6 +19,8 @@ type MetricsMiddleware struct {
 	deleteCount int
 	// count of failed store operations
 	failureCount int
+	// total time spent handling store operations
+	totalLatency time.Duration
 }
 
 func NewMetricsMiddleware(inner store.Storer) *MetricsMiddleware {
@@ -27,7 +30,9 @@ func NewMetricsMiddleware(inner store.Storer) *MetricsMiddleware {
 func (m *MetricsMiddleware) Get(key string) (string, error) {
 	m.selectCount++
 	log.Printf("metrics operation=Get select_count=%d", m.selectCount)
+	start := time.Now()
 	value, err := m.inner.Get(key)
+	m.recordLatency("Get", time.Since(start))
 	m.recordFailure("Get", err)
 	return value, err
 }
@@ -35,7 +40,9 @@ func (m *MetricsMiddleware) Get(key string) (string, error) {
 func (m *MetricsMiddleware) Set(key, value string) error {
 	m.createCount++
 	log.Printf("metrics operation=Set create_count=%d", m.createCount)
+	start := time.Now()
 	err := m.inner.Set(key, value)
+	m.recordLatency("Set", time.Since(start))
 	m.recordFailure("Set", err)
 	return err
 }
@@ -43,9 +50,16 @@ func (m *MetricsMiddleware) Set(key, value string) error {
 func (m *MetricsMiddleware) Delete(key string) error {
 	m.deleteCount++
 	log.Printf("metrics operation=Delete delete_count=%d", m.deleteCount)
+	start := time.Now()
 	err := m.inner.Delete(key)
+	m.recordLatency("Delete", time.Since(start))
 	m.recordFailure("Delete", err)
 	return err
+}
+
+func (m *MetricsMiddleware) recordLatency(operation string, latency time.Duration) {
+	m.totalLatency += latency
+	log.Printf("metrics operation=%s latency=%s total_latency=%s", operation, latency, m.totalLatency)
 }
 
 func (m *MetricsMiddleware) recordFailure(operation string, err error) {
