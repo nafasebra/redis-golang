@@ -29,7 +29,7 @@ func NewMetricsMiddleware(inner store.Storer) *MetricsMiddleware {
 
 func (m *MetricsMiddleware) Get(key string) (string, error) {
 	m.selectCount++
-	log.Printf("metrics operation=Get select_count=%d", m.selectCount)
+	log.Printf(colorGreen+"metrics operation=Get select_count=%d"+colorReset, m.selectCount)
 	start := time.Now()
 	value, err := m.inner.Get(key)
 	m.recordLatency("Get", time.Since(start))
@@ -39,7 +39,7 @@ func (m *MetricsMiddleware) Get(key string) (string, error) {
 
 func (m *MetricsMiddleware) Set(key, value string) error {
 	m.createCount++
-	log.Printf("metrics operation=Set create_count=%d", m.createCount)
+	log.Printf(colorGreen+"metrics operation=Set create_count=%d"+colorReset, m.createCount)
 	start := time.Now()
 	err := m.inner.Set(key, value)
 	m.recordLatency("Set", time.Since(start))
@@ -49,7 +49,7 @@ func (m *MetricsMiddleware) Set(key, value string) error {
 
 func (m *MetricsMiddleware) Delete(key string) error {
 	m.deleteCount++
-	log.Printf("metrics operation=Delete delete_count=%d", m.deleteCount)
+	log.Printf(colorGreen+"metrics operation=Delete delete_count=%d"+colorReset, m.deleteCount)
 	start := time.Now()
 	err := m.inner.Delete(key)
 	m.recordLatency("Delete", time.Since(start))
@@ -59,7 +59,7 @@ func (m *MetricsMiddleware) Delete(key string) error {
 
 func (m *MetricsMiddleware) recordLatency(operation string, latency time.Duration) {
 	m.totalLatency += latency
-	log.Printf("metrics operation=%s latency=%s total_latency=%s", operation, latency, m.totalLatency)
+	log.Printf(colorGreen+"metrics operation=%s latency=%s total_latency=%s"+colorReset, operation, latency, m.totalLatency)
 }
 
 func (m *MetricsMiddleware) recordFailure(operation string, err error) {
@@ -68,7 +68,7 @@ func (m *MetricsMiddleware) recordFailure(operation string, err error) {
 	}
 
 	m.failureCount++
-	log.Printf("metrics operation=%s failure_count=%d error=%v", operation, m.failureCount, err)
+	log.Printf(colorRed+"metrics operation=%s failure_count=%d error=%v"+colorReset, operation, m.failureCount, err)
 }
 
 func (m *MetricsMiddleware) Keys() []string {
