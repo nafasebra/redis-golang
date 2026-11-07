@@ -4,25 +4,33 @@ import (
 	"encoding/base64"
 	"fmt"
 	"redis-golang/store"
-	"redis-golang/store/ttl"
-	"time"
+	"redis-golang/store/kv"
 )
 
 func main() {
-	data := ttl.NewTTLStore()
+	sdata := kv.NewStore()
+	metrics := NewMetricsMiddleware(sdata)
+	logger := NewLoggingMiddleware(metrics, nil)
 
-	if err := data.Set("name", "Nafas"); err != nil {
+	if err := logger.Set("name", "Nafas"); err != nil {
 		fmt.Println(err)
 		return
 	}
-	if err := data.SetWithTTL("code", "1234", time.Now().Add(time.Minute)); err != nil {
+	if err := logger.Set("code", "1234"); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(data.Get("name"))
-	fmt.Println(data.Get("code"))
-	fmt.Println("keys:", data.Keys())
+	fmt.Println(logger.Get("name"))
+	fmt.Println(logger.Get("code"))
+	fmt.Println("keys:", logger.Keys())
+
+	if err := logger.Delete("code"); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("keys after delete:", logger.Keys())
 }
 
 func SetKeyWithEncryption(data store.Storer, key, value string) (string, error) {
