@@ -4,6 +4,7 @@ import (
 	"redis-golang/errors"
 	"redis-golang/store"
 	"sort"
+	"time"
 )
 
 var _ store.Storer = (*Store)(nil)
@@ -13,6 +14,9 @@ type Store struct {
 }
 
 func (s *Store) Get(key string) (string, error) {
+	// simulate time-costing work
+	time.Sleep(time.Second)
+	
 	value, exist := s.data[key]
 	if !exist {
 		return "", errors.ErrKeyNotFound
@@ -21,6 +25,9 @@ func (s *Store) Get(key string) (string, error) {
 }
 
 func (s *Store) Set(key, value string) error {
+	// simulate time-costing work
+	time.Sleep(time.Second)
+
 	if key == "" {
 		return errors.ErrInvalidKey
 	}
