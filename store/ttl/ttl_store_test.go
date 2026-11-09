@@ -367,3 +367,32 @@ func TestLenAfterDelete(t *testing.T) {
 		t.Fatalf("expected length 1, got %d", store.Len())
 	}
 }
+
+func TestCloneCreatesIndependentStore(t *testing.T) {
+	original := NewTTLStore()
+	expiresAt := time.Now().Add(time.Minute)
+	_ = original.SetWithTTL("name", "Nafas", expiresAt)
+	_ = original.Set("city", "Tehran")
+
+	clone := original.Clone()
+	if clone == original {
+		t.Fatal("expected Clone to return a different store")
+	}
+	if clone.Len() != original.Len() {
+		t.Fatalf("clone length = %d, want %d", clone.Len(), original.Len())
+	}
+	entry, exists := clone.data["name"]
+	if !exists || entry.value != "Nafas" || !entry.expire_at.Equal(expiresAt) {
+		t.Fatal("expected clone to preserve the value and expiration")
+	}
+
+	_ = clone.Set("name", "Ali")
+	value, _ := original.Get("name")
+	if value != "Nafas" {
+		t.Fatalf("original value changed to %q", value)
+	}
+	_ = clone.Delete("city")
+	if _, err := original.Get("city"); err != nil {
+		t.Fatalf("original key was deleted: %v", err)
+	}
+}

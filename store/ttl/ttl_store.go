@@ -115,6 +115,16 @@ func (t *TTLStore) Len() int {
 	return len(t.Keys())
 }
 
+func (t *TTLStore) Clone() *TTLStore {
+	cp := &TTLStore{
+		data: make(map[string]ttlEntry, len(t.data)),
+	}
+	for key, entry := range t.data {
+		cp.data[key] = entry
+	}
+	return cp
+}
+
 // Set stores a value without expiration.
 func (t *TTLStore) Set(key, value string) error {
 	if key == "" {

@@ -55,6 +55,16 @@ func (s *Store) Len() int {
 	return len(s.data)
 }
 
+func (s *Store) Clone() *Store {
+	cp := &Store{
+		data: make(map[string]string, len(s.data)),
+	}
+	for key, value := range s.data {
+		cp.data[key] = value
+	}
+	return cp
+}
+
 func NewStore() *Store {
 	return &Store{
 		data: make(map[string]string),

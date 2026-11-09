@@ -170,3 +170,32 @@ func TestLenAfterDelete(t *testing.T) {
 		t.Fatalf("expected length 1, got %d", store.Len())
 	}
 }
+
+func TestCloneCreatesIndependentStore(t *testing.T) {
+	original := NewStore()
+	_ = original.Set("name", "Nafas")
+	_ = original.Set("city", "Tehran")
+
+	clone := original.Clone()
+	if clone == original {
+		t.Fatal("expected Clone to return a different store")
+	}
+	if clone.Len() != original.Len() {
+		t.Fatalf("clone length = %d, want %d", clone.Len(), original.Len())
+	}
+	for key, want := range map[string]string{"name": "Nafas", "city": "Tehran"} {
+		if value, err := clone.Get(key); err != nil || value != want {
+			t.Fatalf("clone.Get(%q) = %q, %v; want %q, nil", key, value, err, want)
+		}
+	}
+
+	_ = clone.Set("name", "Ali")
+	value, _ := original.Get("name")
+	if value != "Nafas" {
+		t.Fatalf("original value changed to %q", value)
+	}
+	_ = clone.Delete("city")
+	if _, err := original.Get("city"); err != nil {
+		t.Fatalf("original key was deleted: %v", err)
+	}
+}
